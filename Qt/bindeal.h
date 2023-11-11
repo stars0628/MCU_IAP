@@ -11,8 +11,6 @@ public:
     int Bin_Deal(QString file, unsigned int size, QString save_file, Ui::MainWindow *a);
     void clearFolder(const QString &folderPath);
 
-
-
     QString BinFilePath;
     QString OutBinFilePath;
     unsigned short BinSize;

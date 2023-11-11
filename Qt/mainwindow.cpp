@@ -3,6 +3,7 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QTimer>
+#include <QStandardPaths>
 
 #include "bindeal.h"
 #include "datadeal.h"
@@ -38,6 +39,10 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     ui->UpdataStart->setEnabled(false);
+
+    QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    bindeal.OutBinFilePath = documentsPath + QDir::separator() + "binTemp";
+    QDir().mkpath(bindeal.OutBinFilePath);
 }
 
 MainWindow::~MainWindow()
@@ -63,10 +68,12 @@ void MainWindow::on_connectBtn_clicked()
         }
         ui->connectBtn->setText("关闭串口");
         ui->UpdataStart->setEnabled(true);
+        ui->SerialComboBox->setEnabled(false);
     } else {
         serialPort.close();
         ui->connectBtn->setText("打开串口");
         ui->UpdataStart->setEnabled(false);
+        ui->SerialComboBox->setEnabled(true);
     }
 }
 
@@ -106,13 +113,15 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress) {
         if (watched == ui->SerialComboBox) {
-            QComboBox *comboBox = qobject_cast<QComboBox *>(watched);
-            comboBox->clear();
-            // 获取所有可用的串口信息
-            QList<QSerialPortInfo> serialPorts = QSerialPortInfo::availablePorts();
-            // 遍历所有串口信息并添加到下拉列表中
-            foreach (const QSerialPortInfo &serialPortInfo, serialPorts) {
-                ui->SerialComboBox->addItem(serialPortInfo.portName() + "  " + serialPortInfo.description());
+                if(ui->SerialComboBox->isEnabled()){
+                QComboBox *comboBox = qobject_cast<QComboBox *>(watched);
+                comboBox->clear();
+                // 获取所有可用的串口信息
+                QList<QSerialPortInfo> serialPorts = QSerialPortInfo::availablePorts();
+                // 遍历所有串口信息并添加到下拉列表中
+                foreach (const QSerialPortInfo &serialPortInfo, serialPorts) {
+                    ui->SerialComboBox->addItem(serialPortInfo.portName() + "  " + serialPortInfo.description());
+                }
             }
         }
     }
@@ -136,7 +145,6 @@ void MainWindow::SerialPortReadyRead_slot()
 
 void MainWindow::HeadDataSend()
 {
-    bindeal.OutBinFilePath = QCoreApplication::applicationDirPath() + "/bin_out/";  // 分割保存路径
     bindeal.SignalBinSize = ui->lineEdit_2->text().toUInt();
     bindeal.Bin_Deal(bindeal.BinFilePath, bindeal.SignalBinSize, bindeal.OutBinFilePath, ui);
     unsigned char data[17];

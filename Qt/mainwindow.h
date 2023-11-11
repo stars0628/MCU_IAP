@@ -33,7 +33,6 @@ private slots:
     bool eventFilter(QObject *watched, QEvent *event);
     void on_FileSelect_clicked();
     void on_UpdataStart_clicked();
-
     void on_Stop_clicked();
 
 private:
