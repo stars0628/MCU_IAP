@@ -132,15 +132,15 @@ void MainWindow::SerialPortReadyRead_slot()
 {
     QByteArray receivedData = serialPort.readAll();
     unsigned short datasize = receivedData.size();
-    unsigned char *receivedDataU8 = (unsigned char *)malloc(datasize);
-    receivedDataU8 = reinterpret_cast<unsigned char *>(receivedData.data());
-    if ((datasize>2)&&((receivedDataU8[datasize - 2] << 8 | receivedDataU8[datasize - 1]) == datadeal.crc16_modbus(receivedDataU8, datasize - 2))) {
+    std::unique_ptr<unsigned char[]> receivedDataU8(new unsigned char[datasize]);
+    memcpy(receivedDataU8.get(), receivedData.constData(), datasize);
+
+    if ((datasize > 2) && ((receivedDataU8[datasize - 2] << 8 | receivedDataU8[datasize - 1]) == datadeal.crc16_modbus(receivedDataU8.get(), datasize - 2))) {
         unsigned short head = receivedDataU8[0] << 8 | receivedDataU8[1];
         SerialDataDeal(head, receivedDataU8[2]);
     } else {
         //
     }
-    free(receivedDataU8);//在64位程序中这个free会导致此程序崩溃，才疏学浅，不懂
 }
 
 void MainWindow::HeadDataSend()
